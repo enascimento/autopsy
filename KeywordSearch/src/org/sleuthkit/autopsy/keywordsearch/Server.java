@@ -816,7 +816,16 @@ public class Server {
             }
 
             String coreName = index.getIndexName();
-            if (!coreIsLoaded(coreName)) {
+            /* @@@ BC In my hangs, this was always returning
+             * true, even if I hadn't opened the core in a long
+             * time and the case was long closed.  Therefore, the
+             * code to delete the core.properties file was never
+             * hit and it hung at the call in the parent caller 
+             * to query for doc count. 
+             * This commenting out was not tested in multi-user
+             * environment.
+            if (!coreIsLoaded(coreName)) { */
+            
                 /*
                  * The core either does not exist or it is not loaded. Make a
                  * request that will cause the core to be created if it does not
@@ -826,7 +835,7 @@ public class Server {
                 // In single user mode, if there is a core.properties file already,
                 // we've hit a solr bug. Compensate by deleting it.
                 if (theCase.getCaseType() == CaseType.SINGLE_USER_CASE) {
-                    Path corePropertiesFile = Paths.get(solrFolder.toString(), SOLR, coreName, CORE_PROPERTIES);
+                    Path corePropertiesFile = Paths.get(solrHome.toString(), coreName, CORE_PROPERTIES);
                     if (corePropertiesFile.toFile().exists()) {
                         try {
                             corePropertiesFile.toFile().delete();
@@ -843,7 +852,7 @@ public class Server {
                 createCoreRequest.setIsLoadOnStartup(false);
                 createCoreRequest.setIsTransient(true);
                 currentSolrServer.request(createCoreRequest);
-            }
+            // @@@ }
 
             if (!coreIndexFolderExists(coreName)) {
                 throw new KeywordSearchModuleException(NbBundle.getMessage(this.getClass(), "Server.openCore.exception.noIndexDir.msg"));
